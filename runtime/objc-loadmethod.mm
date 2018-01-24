@@ -345,6 +345,7 @@ void call_load_methods(void)
     if (loading) return;
     loading = YES;
 
+    //拿到新 push 进去的 pool 对象
     void *pool = objc_autoreleasePoolPush();
 
     do {

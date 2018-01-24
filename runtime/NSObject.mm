@@ -876,6 +876,7 @@ class AutoreleasePoolPage
         return (tls == EMPTY_POOL_PLACEHOLDER);
     }
 
+    //设置一个空 pool 的占位对象。
     static inline id* setEmptyPoolPlaceholder()
     {
         assert(tls_get_direct(key) == nil);
@@ -883,6 +884,7 @@ class AutoreleasePoolPage
         return EMPTY_POOL_PLACEHOLDER;
     }
 
+    //获取和当前线程相关的 AutoreleasePoolPage 对象。
     static inline AutoreleasePoolPage *hotPage() 
     {
         AutoreleasePoolPage *result = (AutoreleasePoolPage *)
@@ -910,9 +912,11 @@ class AutoreleasePoolPage
         return result;
     }
 
-
+    //参数 obj 可能为 nil 也可能为 autorelease 对象。
     static inline id *autoreleaseFast(id obj)
     {
+        //hotPage 应该是去 TLS(线程本地存储) 中获取 AutoreleasePoolPage。
+        //如果是程序刚启动的话，这儿肯定拿到的空
         AutoreleasePoolPage *page = hotPage();
         if (page && !page->full()) {
             return page->add(obj);
@@ -971,6 +975,7 @@ class AutoreleasePoolPage
             // We are pushing a pool with no pool in place,
             // and alloc-per-pool debugging was not requested.
             // Install and return the empty pool placeholder.
+            // push 一个 pool. 设置一个空 pool 的占位符。
             return setEmptyPoolPlaceholder();
         }
 
@@ -978,6 +983,8 @@ class AutoreleasePoolPage
 
         // Install the first page.
         AutoreleasePoolPage *page = new AutoreleasePoolPage(nil);
+        //将 page 放到 TLS 中，这样每次能快速获取。
+        //这也部分说明了 autoreleasePool 和 线程的关系。
         setHotPage(page);
         
         // Push a boundary on behalf of the previously-placeholder'd pool.
